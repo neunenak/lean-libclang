@@ -196,6 +196,15 @@ opaque getCursorTypeSpelling (cursor : @& Cursor) : IO String
 @[extern "lean_clang_getCursorTypeKind"]
 opaque getCursorTypeKindRaw (cursor : @& Cursor) : IO UInt32
 
+/-- Returns `true` if the cursor's location is in the main file
+    (i.e. not from an `#include`d header). -/
+@[extern "lean_clang_isFromMainFile"]
+opaque isFromMainFile (cursor : @& Cursor) : IO Bool
+
+/-- Returns `true` if the cursor's location is in a system header. -/
+@[extern "lean_clang_isInSystemHeader"]
+opaque isInSystemHeader (cursor : @& Cursor) : IO Bool
+
 @[extern "lean_clang_getCursorFile"]
 private opaque getCursorFile (cursor : @& Cursor) : IO String
 

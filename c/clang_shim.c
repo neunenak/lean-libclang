@@ -201,6 +201,20 @@ lean_obj_res lean_clang_getCursorTypeKind(lean_obj_arg cursor,
 // Source location
 // ---------------------------------------------------------------------------
 
+lean_obj_res lean_clang_isFromMainFile(lean_obj_arg cursor,
+                                        lean_obj_arg world) {
+    CXCursor c = lean_to_cursor(cursor);
+    CXSourceLocation loc = clang_getCursorLocation(c);
+    return lean_io_result_mk_ok(lean_box(clang_Location_isFromMainFile(loc) != 0));
+}
+
+lean_obj_res lean_clang_isInSystemHeader(lean_obj_arg cursor,
+                                          lean_obj_arg world) {
+    CXCursor c = lean_to_cursor(cursor);
+    CXSourceLocation loc = clang_getCursorLocation(c);
+    return lean_io_result_mk_ok(lean_box(clang_Location_isInSystemHeader(loc) != 0));
+}
+
 lean_obj_res lean_clang_getCursorFile(lean_obj_arg cursor,
                                        lean_obj_arg world) {
     CXCursor c = lean_to_cursor(cursor);

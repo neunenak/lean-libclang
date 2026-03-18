@@ -1,6 +1,7 @@
 import LeanLibclang
 
-/-- Print an indented tree of the AST rooted at `cursor`. -/
+/-- Print an indented tree of the AST rooted at `cursor`,
+    filtering to only nodes from the main file. -/
 partial def printAST (cursor : Clang.Cursor) (indent : Nat := 0) : IO Unit := do
   let kind ← Clang.getCursorKind cursor
   let spelling ← Clang.getCursorSpelling cursor
@@ -10,7 +11,9 @@ partial def printAST (cursor : Clang.Cursor) (indent : Nat := 0) : IO Unit := do
   IO.println s!"{pad}{repr kind} \"{spelling}\" type=\"{typeSpelling}\" {loc.file}:{loc.line}:{loc.column}"
   let children ← Clang.getChildren cursor
   for child in children do
-    printAST child (indent + 1)
+    let fromMain ← Clang.isFromMainFile child
+    if fromMain then
+      printAST child (indent + 1)
 
 def main (args : List String) : IO Unit := do
   match args with
