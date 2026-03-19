@@ -31,7 +31,7 @@ structure SourceLocation where
   file   : String
   line   : UInt32
   column : UInt32
-  deriving Repr, BEq, Inhabited
+  deriving Repr, BEq
 
 -- ---------------------------------------------------------------------------
 -- FFI declarations
@@ -56,7 +56,7 @@ opaque getTranslationUnitCursor (tu : @& TranslationUnit) : IO Cursor
 
 /-- Get the kind of a cursor (as a raw UInt32 from CXCursorKind). -/
 @[extern "lean_clang_getCursorKind"]
-opaque getCursorKindRaw (cursor : @& Cursor) : IO UInt32
+private opaque getCursorKindRaw (cursor : @& Cursor) : IO UInt32
 
 /-- Get the kind of a cursor. -/
 def getCursorKind (cursor : Cursor) : IO CursorKind := do
