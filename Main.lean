@@ -8,7 +8,7 @@ partial def printAST (cursor : Clang.Cursor) (indent : Nat := 0) : IO Unit := do
   let typeSpelling ← Clang.getCursorTypeSpelling cursor
   let loc ← Clang.getCursorLocation cursor
   let pad := "".pushn ' ' (indent * 2)
-  IO.println s!"{pad}{repr kind} \"{spelling}\" type=\"{typeSpelling}\" {loc.file}:{loc.line}:{loc.column}"
+  IO.println s!"{pad}{kind} \"{spelling}\" type=\"{typeSpelling}\" {loc.file}:{loc.line}:{loc.column}"
   let children ← Clang.getChildren cursor
   for child in children do
     let fromMain ← Clang.isFromMainFile child

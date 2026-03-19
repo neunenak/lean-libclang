@@ -122,4 +122,10 @@ def ofRaw (n : UInt32) : CursorKind :=
   | 350 => .translationUnit
   | n   => .other n
 
+instance : ToString CursorKind where
+  toString k :=
+    let r := repr k |>.pretty
+    let pfx := "CursorKind."
+    if r.startsWith pfx then (r.drop pfx.length).toString else r
+
 end CursorKind
