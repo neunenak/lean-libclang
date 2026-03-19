@@ -84,21 +84,9 @@ opaque isFromMainFile (cursor : @& Cursor) : IO Bool
 @[extern "lean_clang_isInSystemHeader"]
 opaque isInSystemHeader (cursor : @& Cursor) : IO Bool
 
-@[extern "lean_clang_getCursorFile"]
-private opaque getCursorFile (cursor : @& Cursor) : IO String
-
-@[extern "lean_clang_getCursorLine"]
-private opaque getCursorLine (cursor : @& Cursor) : IO UInt32
-
-@[extern "lean_clang_getCursorColumn"]
-private opaque getCursorColumn (cursor : @& Cursor) : IO UInt32
-
 /-- Get the source location of a cursor. -/
-def getCursorLocation (cursor : Cursor) : IO SourceLocation := do
-  let file ← getCursorFile cursor
-  let line ← getCursorLine cursor
-  let column ← getCursorColumn cursor
-  return { file, line, column }
+@[extern "lean_clang_getCursorLocation"]
+opaque getCursorLocation (cursor : @& Cursor) : IO SourceLocation
 
 /-- Get the immediate children of a cursor. -/
 @[extern "lean_clang_getChildren"]

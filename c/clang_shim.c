@@ -215,30 +215,26 @@ lean_obj_res lean_clang_isInSystemHeader(lean_obj_arg cursor,
     return lean_io_result_mk_ok(lean_box(clang_Location_isInSystemHeader(loc) != 0));
 }
 
-lean_obj_res lean_clang_getCursorFile(lean_obj_arg cursor,
-                                       lean_obj_arg world) {
+lean_obj_res lean_clang_getCursorLocation(lean_obj_arg cursor,
+                                            lean_obj_arg world) {
     CXCursor c = lean_to_cursor(cursor);
     CXSourceLocation loc = clang_getCursorLocation(c);
+
     CXFile file;
-    clang_getSpellingLocation(loc, &file, NULL, NULL, NULL);
+    unsigned line, column, offset;
+    clang_getSpellingLocation(loc, &file, &line, &column, &offset);
+
     CXString fileName = clang_getFileName(file);
-    return lean_io_result_mk_ok(cxstring_to_lean(fileName));
-}
+    lean_obj_res leanFile = cxstring_to_lean(fileName);
 
-lean_obj_res lean_clang_getCursorLine(lean_obj_arg cursor, lean_obj_arg world) {
-    CXCursor c = lean_to_cursor(cursor);
-    CXSourceLocation loc = clang_getCursorLocation(c);
-    unsigned line;
-    clang_getSpellingLocation(loc, NULL, &line, NULL, NULL);
-    return lean_io_result_mk_ok(lean_box((size_t)line));
-}
-
-lean_obj_res lean_clang_getCursorColumn(lean_obj_arg cursor, lean_obj_arg world) {
-    CXCursor c = lean_to_cursor(cursor);
-    CXSourceLocation loc = clang_getCursorLocation(c);
-    unsigned column;
-    clang_getSpellingLocation(loc, NULL, NULL, &column, NULL);
-    return lean_io_result_mk_ok(lean_box((size_t)column));
+    // SourceLocation: 1 object field (String), 8 bytes scalar (2x UInt32)
+    // lean_ctor_set_uint32 offset is from start of data area, not scalar area,
+    // so with 1 pointer (8 bytes), scalars start at offset 8.
+    lean_obj_res obj = lean_alloc_ctor(0, 1, 8);
+    lean_ctor_set(obj, 0, leanFile);
+    lean_ctor_set_uint32(obj, sizeof(void *), (uint32_t)line);
+    lean_ctor_set_uint32(obj, sizeof(void *) + 4, (uint32_t)column);
+    return lean_io_result_mk_ok(obj);
 }
 
 // ---------------------------------------------------------------------------
