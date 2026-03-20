@@ -3,9 +3,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-// ---------------------------------------------------------------------------
-// External object classes (so Lean's GC can call our finalizers)
-// ---------------------------------------------------------------------------
+/*
+External object classes (so Lean's GC can call our finalizers)
+*/
 
 static void cxindex_finalizer(void *ptr) {
     clang_disposeIndex((CXIndex)ptr);
