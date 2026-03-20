@@ -18,9 +18,9 @@ extern_lib libclangshim pkg := do
 
 @[default_target]
 lean_lib LeanLibclang where
-  moreLinkArgs := #["-lclang"]
+  moreLinkArgs := #["-L/usr/lib", "-lclang"]
 
 @[default_target]
 lean_exe «lean-libclang» where
   root := `Main
-  moreLinkArgs := #["-lclang"]
+  moreLinkArgs := #["-L/usr/lib", "-lclang"]
