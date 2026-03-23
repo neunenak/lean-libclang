@@ -76,6 +76,7 @@ private opaque clangConfig : ClangConfig
 -- Compile the C shim
 target «clang_shim.o» pkg : FilePath := do
   logInfo "Compiling clang_shim"
+  logInfo s!"Using libclang include dir: {clangConfig.includeDir} ; lib dir: {clangConfig.libDir}"
   let oFile := pkg.buildDir / "c" / "clang_shim.o"
   let srcJob ← inputTextFile <| pkg.dir / "c" / "clang_shim.c"
   let weakArgs := #["-I", (← getLeanIncludeDir).toString, "-I", clangConfig.includeDir]
