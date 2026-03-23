@@ -8,8 +8,13 @@ structure ClangConfig where
   libDir : String
   deriving Inhabited
 
-private def defaultConfig : ClangConfig :=
+
+namespace ClangConfig
+
+private def default : ClangConfig :=
   { includeDir := "/usr/include", libDir := "/usr/lib" }
+
+end ClangConfig
 
 /-- Try running a command and return its stdout trimmed, or `none` on failure. -/
 private def runCmd (cmd : String) (args : Array String) : IO (Option String) := do
@@ -56,14 +61,14 @@ private def detectLibclang : IO ClangConfig := do
 
   IO.eprintln "Warning: Could not detect libclang. Set LIBCLANG_PREFIX to your LLVM install prefix."
   IO.eprintln "  e.g. LIBCLANG_PREFIX=/usr/lib/llvm-18 lake build"
-  return defaultConfig
+  return ClangConfig.default
 
 -- `moreLinkArgs` in lean_lib/lean_exe requires a pure value, so we must use
 -- unsafeBaseIO to run the IO-based detection at elaboration time.
 private unsafe def clangConfigImpl : ClangConfig :=
   match unsafeBaseIO (EIO.toBaseIO detectLibclang) with
   | .ok cfg => cfg
-  | .error _ => defaultConfig
+  | .error _ => ClangConfig.default
 
 @[implemented_by clangConfigImpl]
 private opaque clangConfig : ClangConfig
@@ -82,11 +87,13 @@ extern_lib libclangshim pkg := do
   let name := nameToStaticLib "clangshim"
   buildStaticLib (pkg.staticLibDir / name) #[shimO]
 
+def moreLinkArgs: Array String := #[s!"-L{clangConfig.libDir}", "-lclang"]
+
 @[default_target]
 lean_lib LeanLibclang where
-  moreLinkArgs := #[s!"-L{clangConfig.libDir}", "-lclang"]
+  moreLinkArgs := moreLinkArgs
 
 @[default_target]
 lean_exe «lean-libclang» where
   root := `Main
-  moreLinkArgs := #[s!"-L{clangConfig.libDir}", "-lclang"]
+  moreLinkArgs := moreLinkArgs
