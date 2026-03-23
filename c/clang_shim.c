@@ -53,9 +53,9 @@ static lean_external_class *get_cxcursor_class(void) {
     return g_cxcursor_class;
 }
 
-// ---------------------------------------------------------------------------
-// Helpers: box/unbox CXCursor
-// ---------------------------------------------------------------------------
+/*
+Helpers: box/unbox CXCursor
+*/
 
 // Create a Lean Cursor object that holds both the CXCursor value and
 // a reference to the TU Lean object (to keep it alive).
@@ -77,9 +77,9 @@ static lean_object *lean_cursor_tu_ref(lean_obj_arg obj) {
     return cd->tu_ref;
 }
 
-// ---------------------------------------------------------------------------
-// Helper: CXString -> Lean String (disposes the CXString)
-// ---------------------------------------------------------------------------
+/*
+Helper: CXString -> Lean String (disposes the CXString)
+*/
 
 static lean_obj_res cxstring_to_lean(CXString s) {
     const char *cstr = clang_getCString(s);
@@ -88,10 +88,9 @@ static lean_obj_res cxstring_to_lean(CXString s) {
     return result;
 }
 
-// ---------------------------------------------------------------------------
-// Index lifecycle
-// ---------------------------------------------------------------------------
-
+/*
+Index lifecycle
+*/
 lean_obj_res lean_clang_createIndex(uint8_t excludeDeclsFromPCH,
                                     uint8_t displayDiagnostics,
                                     lean_obj_arg world) {
@@ -109,9 +108,9 @@ lean_obj_res lean_clang_disposeIndex(lean_obj_arg idx, lean_obj_arg world) {
     return lean_io_result_mk_ok(lean_box(0));
 }
 
-// ---------------------------------------------------------------------------
-// Translation unit
-// ---------------------------------------------------------------------------
+/*
+Translation unit
+*/
 
 lean_obj_res lean_clang_parseTranslationUnit(lean_obj_arg idx,
                                               lean_obj_arg filename,
@@ -152,9 +151,9 @@ lean_obj_res lean_clang_disposeTranslationUnit(lean_obj_arg tu,
     return lean_io_result_mk_ok(lean_box(0));
 }
 
-// ---------------------------------------------------------------------------
-// Cursor: get TU cursor
-// ---------------------------------------------------------------------------
+/*
+Cursor: get TU cursor
+*/
 
 lean_obj_res lean_clang_getTranslationUnitCursor(lean_obj_arg tu,
                                                   lean_obj_arg world) {
@@ -165,9 +164,9 @@ lean_obj_res lean_clang_getTranslationUnitCursor(lean_obj_arg tu,
     return lean_io_result_mk_ok(cursor_to_lean(cursor, tu));
 }
 
-// ---------------------------------------------------------------------------
-// Cursor queries
-// ---------------------------------------------------------------------------
+/*
+Cursor queries
+*/
 
 lean_obj_res lean_clang_getCursorKind(lean_obj_arg cursor, lean_obj_arg world) {
     CXCursor c = lean_to_cursor(cursor);
@@ -197,9 +196,9 @@ lean_obj_res lean_clang_getCursorTypeKind(lean_obj_arg cursor,
     return lean_io_result_mk_ok(lean_box((unsigned)ty.kind));
 }
 
-// ---------------------------------------------------------------------------
-// Source location
-// ---------------------------------------------------------------------------
+/*
+Source location
+*/
 
 lean_obj_res lean_clang_isFromMainFile(lean_obj_arg cursor,
                                         lean_obj_arg world) {
@@ -237,9 +236,9 @@ lean_obj_res lean_clang_getCursorLocation(lean_obj_arg cursor,
     return lean_io_result_mk_ok(obj);
 }
 
-// ---------------------------------------------------------------------------
-// Child visitor: collects immediate children into a Lean Array
-// ---------------------------------------------------------------------------
+/*
+Child visitor: collects immediate children into a Lean Array
+*/
 
 typedef struct {
     CXCursor *buf;
@@ -276,9 +275,9 @@ lean_obj_res lean_clang_getChildren(lean_obj_arg cursor, lean_obj_arg world) {
     return lean_io_result_mk_ok(arr);
 }
 
-// ---------------------------------------------------------------------------
-// Cursor equality and hashing (libclang provides these)
-// ---------------------------------------------------------------------------
+/*
+Cursor equality and hashing (libclang provides these)
+*/
 
 uint8_t lean_clang_equalCursors(lean_obj_arg a, lean_obj_arg b) {
     CXCursor ca = lean_to_cursor(a);
@@ -291,9 +290,9 @@ uint32_t lean_clang_hashCursor(lean_obj_arg cursor) {
     return clang_hashCursor(c);
 }
 
-// ---------------------------------------------------------------------------
-// Null cursor check
-// ---------------------------------------------------------------------------
+/*
+Null cursor check
+*/
 
 lean_obj_res lean_clang_cursorIsNull(lean_obj_arg cursor, lean_obj_arg world) {
     CXCursor c = lean_to_cursor(cursor);
