@@ -2,17 +2,22 @@ _default:
     @just --list
 
 
+# Build the library and executable using lake
 build:
-    nix develop --command lake build
+    lake build
 
-# Run the AST printer on a C file
-run file:
-    nix develop --command .lake/build/bin/lean-libclang {{file}}
+# Run the example executable, which shows a basic parse tree of a C file given as an argument
+run *args:
+    lake exe lean-libclang {{args}}
+
+# Build the library and executable using nix
+nix-build:
+    nix build
 
 # Build and run via nix
-nix-run file:
-    nix run . -- {{file}}
+nix-run *args:
+    nix run . -- {{args}}
 
 # Clean build artifacts
 clean:
-    nix develop --command lake clean
+    lake clean
