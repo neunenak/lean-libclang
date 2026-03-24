@@ -88,7 +88,8 @@ extern_lib libclangshim pkg := do
   let name := nameToStaticLib "clangshim"
   buildStaticLib (pkg.staticLibDir / name) #[shimO]
 
-def moreLinkArgs: Array String := #[s!"-L{clangConfig.libDir}", "-lclang"]
+def moreLinkArgs: Array String := #[s!"-L{clangConfig.libDir}", "-lclang",
+  s!"-Wl,--disable-new-dtags,-rpath,{clangConfig.libDir}"]
 
 @[default_target]
 lean_lib LeanLibclang where
