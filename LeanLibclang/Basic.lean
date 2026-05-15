@@ -96,6 +96,19 @@ opaque getChildren (cursor : @& Cursor) : IO (Array Cursor)
 @[extern "lean_clang_cursorIsNull"]
 opaque cursorIsNull (cursor : @& Cursor) : IO Bool
 
+/-- Get the number of arguments of a function/method cursor (-1 if not applicable). -/
+@[extern "lean_clang_getCursorNumArguments"]
+opaque getCursorNumArguments (cursor : @& Cursor) : IO UInt32
+
+/-- Get the Nth argument cursor of a function/method cursor. -/
+@[extern "lean_clang_getCursorArgument"]
+opaque getCursorArgument (cursor : @& Cursor) (i : UInt32) : IO Cursor
+
+/-- Get the return type spelling of a function cursor (more reliable than
+    splitting the full function type string). -/
+@[extern "lean_clang_getCursorResultTypeSpelling"]
+opaque getCursorResultTypeSpelling (cursor : @& Cursor) : IO String
+
 /-- Get the signed integer value of an `enumConstantDecl` cursor. -/
 @[extern "lean_clang_getCursorEnumConstantValue"]
 opaque getCursorEnumConstantValue (cursor : @& Cursor) : IO Int64

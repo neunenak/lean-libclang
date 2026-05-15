@@ -300,6 +300,39 @@ lean_obj_res lean_clang_cursorIsNull(lean_obj_arg cursor, lean_obj_arg world) {
 }
 
 /*
+Function argument access (more reliable than getChildren for macro-heavy SDL-style headers)
+*/
+
+lean_obj_res lean_clang_getCursorNumArguments(lean_obj_arg cursor,
+                                               lean_obj_arg world) {
+    CXCursor c = lean_to_cursor(cursor);
+    int n = clang_Cursor_getNumArguments(c);
+    return lean_io_result_mk_ok(lean_box((unsigned)(n < 0 ? 0 : n)));
+}
+
+lean_obj_res lean_clang_getCursorArgument(lean_obj_arg cursor,
+                                           uint32_t i,
+                                           lean_obj_arg world) {
+    CXCursor c = lean_to_cursor(cursor);
+    lean_object *tu_ref = lean_cursor_tu_ref(cursor);
+    CXCursor arg = clang_Cursor_getArgument(c, (unsigned)i);
+    return lean_io_result_mk_ok(cursor_to_lean(arg, tu_ref));
+}
+
+/*
+Return type of a function cursor
+*/
+
+lean_obj_res lean_clang_getCursorResultTypeSpelling(lean_obj_arg cursor,
+                                                     lean_obj_arg world) {
+    CXCursor c = lean_to_cursor(cursor);
+    CXType funcType = clang_getCursorType(c);
+    CXType resultType = clang_getResultType(funcType);
+    CXString spelling = clang_getTypeSpelling(resultType);
+    return lean_io_result_mk_ok(cxstring_to_lean(spelling));
+}
+
+/*
 Enum constant value
 */
 
