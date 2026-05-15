@@ -62,6 +62,9 @@ inductive CursorKind where
   | declStmt             -- 231
   -- Translation unit
   | translationUnit      -- 350 (CXCursor_TranslationUnit = 300)
+  -- Preprocessor
+  | macroDefinition      -- 501
+  | macroExpansion       -- 502
   -- Other
   | other (raw : UInt32)
   deriving Repr, BEq, Inhabited
@@ -120,6 +123,8 @@ def ofRaw (n : UInt32) : CursorKind :=
   | 214 => .returnStmt
   | 231 => .declStmt
   | 350 => .translationUnit
+  | 501 => .macroDefinition
+  | 502 => .macroExpansion
   | n   => .other n
 
 instance : ToString CursorKind where

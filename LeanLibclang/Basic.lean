@@ -44,11 +44,14 @@ opaque createIndex (excludeDeclsFromPCH : Bool)
                    (displayDiagnostics : Bool) : IO Index
 
 /-- Parse a source file into a translation unit.
-    `args` are extra command-line arguments passed to clang (e.g. `#["-std=c11"]`). -/
+    `args` are extra command-line arguments passed to clang (e.g. `#["-std=c11"]`).
+    `flags` is a bitmask of `CXTranslationUnit_Flags` values (0 = none).
+    Pass `1` for `CXTranslationUnit_DetailedPreprocessingRecord` to expose macro cursors. -/
 @[extern "lean_clang_parseTranslationUnit"]
 opaque parseTranslationUnit (idx : @& Index)
                              (filename : @& String)
-                             (args : @& Array String) : IO TranslationUnit
+                             (args : @& Array String)
+                             (flags : UInt32 := 0) : IO TranslationUnit
 
 /-- Get the root cursor of a translation unit. -/
 @[extern "lean_clang_getTranslationUnitCursor"]
@@ -112,6 +115,11 @@ opaque getCursorResultTypeSpelling (cursor : @& Cursor) : IO String
 /-- Get the signed integer value of an `enumConstantDecl` cursor. -/
 @[extern "lean_clang_getCursorEnumConstantValue"]
 opaque getCursorEnumConstantValue (cursor : @& Cursor) : IO Int64
+
+/-- Evaluate a cursor's expression and return the integer result, or `none`
+    if the cursor is not an integer-valued macro or expression. -/
+@[extern "lean_clang_evaluateCursor"]
+opaque evaluateCursor (cursor : @& Cursor) : IO (Option Int64)
 
 /-- Get the unsigned integer value of an `enumConstantDecl` cursor. -/
 @[extern "lean_clang_getCursorEnumConstantUValue"]

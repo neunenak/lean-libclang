@@ -115,6 +115,7 @@ Translation unit
 lean_obj_res lean_clang_parseTranslationUnit(lean_obj_arg idx,
                                               lean_obj_arg filename,
                                               lean_obj_arg args,
+                                              uint32_t flags,
                                               lean_obj_arg world) {
     CXIndex cxIdx = (CXIndex)lean_get_external_data(idx);
     const char *fname = lean_string_cstr(filename);
@@ -131,7 +132,7 @@ lean_obj_res lean_clang_parseTranslationUnit(lean_obj_arg idx,
 
     CXTranslationUnit tu = clang_parseTranslationUnit(
         cxIdx, fname, cargs, (int)nargs, NULL, 0,
-        CXTranslationUnit_None);
+        (unsigned)flags);
 
     if (cargs) free(cargs);
 
@@ -348,4 +349,30 @@ lean_obj_res lean_clang_getCursorEnumConstantUValue(lean_obj_arg cursor,
     CXCursor c = lean_to_cursor(cursor);
     unsigned long long value = clang_getEnumConstantDeclUnsignedValue(c);
     return lean_io_result_mk_ok(lean_box_uint64((uint64_t)value));
+}
+
+/*
+Evaluate a cursor as an integer expression (for macro constants).
+Returns Option Int64: some(value) for CXEval_Int, none otherwise.
+*/
+
+lean_obj_res lean_clang_evaluateCursor(lean_obj_arg cursor, lean_obj_arg world) {
+    CXCursor c = lean_to_cursor(cursor);
+    CXEvalResult eval = clang_Cursor_Evaluate(c);
+    if (!eval)
+        return lean_io_result_mk_ok(lean_box(0));  // none
+
+    lean_obj_res result;
+    if (clang_EvalResult_getKind(eval) == CXEval_Int) {
+        long long val = clang_EvalResult_getAsInt(eval);
+        lean_obj_res boxed = lean_box_uint64((uint64_t)val);
+        lean_obj_res some  = lean_alloc_ctor(1, 1, 0);
+        lean_ctor_set(some, 0, boxed);
+        result = some;
+    } else {
+        result = lean_box(0);  // none
+    }
+
+    clang_EvalResult_dispose(eval);
+    return lean_io_result_mk_ok(result);
 }
