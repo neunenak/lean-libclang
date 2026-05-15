@@ -352,27 +352,47 @@ lean_obj_res lean_clang_getCursorEnumConstantUValue(lean_obj_arg cursor,
 }
 
 /*
-Evaluate a cursor as an integer expression (for macro constants).
-Returns Option Int64: some(value) for CXEval_Int, none otherwise.
+Evaluate a macroDefinition cursor as an integer constant.
+clang_Cursor_Evaluate does not work on macro definitions, so we tokenize the
+macro body and try to parse the first non-name token as an integer literal.
+Returns Option Int64: some(value) on success, none otherwise.
 */
 
 lean_obj_res lean_clang_evaluateCursor(lean_obj_arg cursor, lean_obj_arg world) {
+    lean_object *tu_lean = lean_cursor_tu_ref(cursor);
+    CXTranslationUnit tu = (CXTranslationUnit)lean_get_external_data(tu_lean);
     CXCursor c = lean_to_cursor(cursor);
-    CXEvalResult eval = clang_Cursor_Evaluate(c);
-    if (!eval)
-        return lean_io_result_mk_ok(lean_box(0));  // none
 
-    lean_obj_res result;
-    if (clang_EvalResult_getKind(eval) == CXEval_Int) {
-        long long val = clang_EvalResult_getAsInt(eval);
-        lean_obj_res boxed = lean_box_uint64((uint64_t)val);
-        lean_obj_res some  = lean_alloc_ctor(1, 1, 0);
-        lean_ctor_set(some, 0, boxed);
-        result = some;
-    } else {
-        result = lean_box(0);  // none
+    CXSourceRange range = clang_getCursorExtent(c);
+    CXToken *tokens = NULL;
+    unsigned nTokens = 0;
+    clang_tokenize(tu, range, &tokens, &nTokens);
+
+    lean_obj_res result = lean_box(0);  // none
+
+    // tokens[0] is the macro name; tokens[1] onward is the body.
+    // Handle simple single-token integer bodies: 0x10u, 16, 0755, etc.
+    if (nTokens >= 2 &&
+        clang_getTokenKind(tokens[1]) == CXToken_Literal) {
+        CXString sp = clang_getTokenSpelling(tu, tokens[1]);
+        const char *s = clang_getCString(sp);
+        char *end = NULL;
+        long long val = strtoll(s, &end, 0);
+        // Accept if we consumed at least one digit and only suffix chars remain
+        if (end != s) {
+            // skip standard integer suffixes (u, U, l, L, ul, ULL, etc.)
+            while (*end == 'u' || *end == 'U' || *end == 'l' || *end == 'L')
+                end++;
+            if (*end == '\0') {
+                lean_obj_res boxed = lean_box_uint64((uint64_t)val);
+                lean_obj_res some  = lean_alloc_ctor(1, 1, 0);
+                lean_ctor_set(some, 0, boxed);
+                result = some;
+            }
+        }
+        clang_disposeString(sp);
     }
 
-    clang_EvalResult_dispose(eval);
+    if (tokens) clang_disposeTokens(tu, tokens, nTokens);
     return lean_io_result_mk_ok(result);
 }
