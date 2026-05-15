@@ -96,6 +96,14 @@ opaque getChildren (cursor : @& Cursor) : IO (Array Cursor)
 @[extern "lean_clang_cursorIsNull"]
 opaque cursorIsNull (cursor : @& Cursor) : IO Bool
 
+/-- Get the signed integer value of an `enumConstantDecl` cursor. -/
+@[extern "lean_clang_getCursorEnumConstantValue"]
+opaque getCursorEnumConstantValue (cursor : @& Cursor) : IO Int64
+
+/-- Get the unsigned integer value of an `enumConstantDecl` cursor. -/
+@[extern "lean_clang_getCursorEnumConstantUValue"]
+opaque getCursorEnumConstantUValue (cursor : @& Cursor) : IO UInt64
+
 /-- Dispose of a translation unit (can also just let GC handle it). -/
 @[extern "lean_clang_disposeTranslationUnit"]
 opaque disposeTranslationUnit (tu : TranslationUnit) : IO Unit

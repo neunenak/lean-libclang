@@ -298,3 +298,21 @@ lean_obj_res lean_clang_cursorIsNull(lean_obj_arg cursor, lean_obj_arg world) {
     CXCursor c = lean_to_cursor(cursor);
     return lean_io_result_mk_ok(lean_box(clang_Cursor_isNull(c) != 0));
 }
+
+/*
+Enum constant value
+*/
+
+lean_obj_res lean_clang_getCursorEnumConstantValue(lean_obj_arg cursor,
+                                                    lean_obj_arg world) {
+    CXCursor c = lean_to_cursor(cursor);
+    long long value = clang_getEnumConstantDeclValue(c);
+    return lean_io_result_mk_ok(lean_box_uint64((uint64_t)value));
+}
+
+lean_obj_res lean_clang_getCursorEnumConstantUValue(lean_obj_arg cursor,
+                                                     lean_obj_arg world) {
+    CXCursor c = lean_to_cursor(cursor);
+    unsigned long long value = clang_getEnumConstantDeclUnsignedValue(c);
+    return lean_io_result_mk_ok(lean_box_uint64((uint64_t)value));
+}
