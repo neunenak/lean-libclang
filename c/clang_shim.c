@@ -92,8 +92,7 @@ static lean_obj_res cxstring_to_lean(CXString s) {
 Index lifecycle
 */
 lean_obj_res lean_clang_createIndex(uint8_t excludeDeclsFromPCH,
-                                    uint8_t displayDiagnostics,
-                                    lean_obj_arg world) {
+                                    uint8_t displayDiagnostics) {
     CXIndex idx = clang_createIndex(excludeDeclsFromPCH, displayDiagnostics);
     if (!idx) {
         return lean_io_result_mk_error(
@@ -103,7 +102,7 @@ lean_obj_res lean_clang_createIndex(uint8_t excludeDeclsFromPCH,
     return lean_io_result_mk_ok(obj);
 }
 
-lean_obj_res lean_clang_disposeIndex(lean_obj_arg idx, lean_obj_arg world) {
+lean_obj_res lean_clang_disposeIndex(lean_obj_arg idx) {
     lean_dec_ref(idx);
     return lean_io_result_mk_ok(lean_box(0));
 }
@@ -115,8 +114,7 @@ Translation unit
 lean_obj_res lean_clang_parseTranslationUnit(lean_obj_arg idx,
                                               lean_obj_arg filename,
                                               lean_obj_arg args,
-                                              uint32_t flags,
-                                              lean_obj_arg world) {
+                                              uint32_t flags) {
     CXIndex cxIdx = (CXIndex)lean_get_external_data(idx);
     const char *fname = lean_string_cstr(filename);
 
@@ -146,8 +144,7 @@ lean_obj_res lean_clang_parseTranslationUnit(lean_obj_arg idx,
     return lean_io_result_mk_ok(obj);
 }
 
-lean_obj_res lean_clang_disposeTranslationUnit(lean_obj_arg tu,
-                                                lean_obj_arg world) {
+lean_obj_res lean_clang_disposeTranslationUnit(lean_obj_arg tu) {
     lean_dec_ref(tu);
     return lean_io_result_mk_ok(lean_box(0));
 }
@@ -156,8 +153,7 @@ lean_obj_res lean_clang_disposeTranslationUnit(lean_obj_arg tu,
 Cursor: get TU cursor
 */
 
-lean_obj_res lean_clang_getTranslationUnitCursor(lean_obj_arg tu,
-                                                  lean_obj_arg world) {
+lean_obj_res lean_clang_getTranslationUnitCursor(lean_obj_arg tu) {
     CXTranslationUnit cxTU =
         (CXTranslationUnit)lean_get_external_data(tu);
     CXCursor cursor = clang_getTranslationUnitCursor(cxTU);
@@ -169,29 +165,26 @@ lean_obj_res lean_clang_getTranslationUnitCursor(lean_obj_arg tu,
 Cursor queries
 */
 
-lean_obj_res lean_clang_getCursorKind(lean_obj_arg cursor, lean_obj_arg world) {
+lean_obj_res lean_clang_getCursorKind(lean_obj_arg cursor) {
     CXCursor c = lean_to_cursor(cursor);
     enum CXCursorKind kind = clang_getCursorKind(c);
     return lean_io_result_mk_ok(lean_box((unsigned)kind));
 }
 
-lean_obj_res lean_clang_getCursorSpelling(lean_obj_arg cursor,
-                                           lean_obj_arg world) {
+lean_obj_res lean_clang_getCursorSpelling(lean_obj_arg cursor) {
     CXCursor c = lean_to_cursor(cursor);
     CXString spelling = clang_getCursorSpelling(c);
     return lean_io_result_mk_ok(cxstring_to_lean(spelling));
 }
 
-lean_obj_res lean_clang_getCursorTypeSpelling(lean_obj_arg cursor,
-                                               lean_obj_arg world) {
+lean_obj_res lean_clang_getCursorTypeSpelling(lean_obj_arg cursor) {
     CXCursor c = lean_to_cursor(cursor);
     CXType ty = clang_getCursorType(c);
     CXString spelling = clang_getTypeSpelling(ty);
     return lean_io_result_mk_ok(cxstring_to_lean(spelling));
 }
 
-lean_obj_res lean_clang_getCursorTypeKind(lean_obj_arg cursor,
-                                           lean_obj_arg world) {
+lean_obj_res lean_clang_getCursorTypeKind(lean_obj_arg cursor) {
     CXCursor c = lean_to_cursor(cursor);
     CXType ty = clang_getCursorType(c);
     return lean_io_result_mk_ok(lean_box((unsigned)ty.kind));
@@ -201,22 +194,19 @@ lean_obj_res lean_clang_getCursorTypeKind(lean_obj_arg cursor,
 Source location
 */
 
-lean_obj_res lean_clang_isFromMainFile(lean_obj_arg cursor,
-                                        lean_obj_arg world) {
+lean_obj_res lean_clang_isFromMainFile(lean_obj_arg cursor) {
     CXCursor c = lean_to_cursor(cursor);
     CXSourceLocation loc = clang_getCursorLocation(c);
     return lean_io_result_mk_ok(lean_box(clang_Location_isFromMainFile(loc) != 0));
 }
 
-lean_obj_res lean_clang_isInSystemHeader(lean_obj_arg cursor,
-                                          lean_obj_arg world) {
+lean_obj_res lean_clang_isInSystemHeader(lean_obj_arg cursor) {
     CXCursor c = lean_to_cursor(cursor);
     CXSourceLocation loc = clang_getCursorLocation(c);
     return lean_io_result_mk_ok(lean_box(clang_Location_isInSystemHeader(loc) != 0));
 }
 
-lean_obj_res lean_clang_getCursorLocation(lean_obj_arg cursor,
-                                            lean_obj_arg world) {
+lean_obj_res lean_clang_getCursorLocation(lean_obj_arg cursor) {
     CXCursor c = lean_to_cursor(cursor);
     CXSourceLocation loc = clang_getCursorLocation(c);
 
@@ -259,7 +249,7 @@ static enum CXChildVisitResult collect_children_visitor(CXCursor cursor,
     return CXChildVisit_Continue;
 }
 
-lean_obj_res lean_clang_getChildren(lean_obj_arg cursor, lean_obj_arg world) {
+lean_obj_res lean_clang_getChildren(lean_obj_arg cursor) {
     CXCursor c = lean_to_cursor(cursor);
     lean_object *tu_ref = lean_cursor_tu_ref(cursor);
 
@@ -295,7 +285,7 @@ uint32_t lean_clang_hashCursor(lean_obj_arg cursor) {
 Null cursor check
 */
 
-lean_obj_res lean_clang_cursorIsNull(lean_obj_arg cursor, lean_obj_arg world) {
+lean_obj_res lean_clang_cursorIsNull(lean_obj_arg cursor) {
     CXCursor c = lean_to_cursor(cursor);
     return lean_io_result_mk_ok(lean_box(clang_Cursor_isNull(c) != 0));
 }
@@ -304,16 +294,14 @@ lean_obj_res lean_clang_cursorIsNull(lean_obj_arg cursor, lean_obj_arg world) {
 Function argument access (more reliable than getChildren for macro-heavy SDL-style headers)
 */
 
-lean_obj_res lean_clang_getCursorNumArguments(lean_obj_arg cursor,
-                                               lean_obj_arg world) {
+lean_obj_res lean_clang_getCursorNumArguments(lean_obj_arg cursor) {
     CXCursor c = lean_to_cursor(cursor);
     int n = clang_Cursor_getNumArguments(c);
     return lean_io_result_mk_ok(lean_box((unsigned)(n < 0 ? 0 : n)));
 }
 
 lean_obj_res lean_clang_getCursorArgument(lean_obj_arg cursor,
-                                           uint32_t i,
-                                           lean_obj_arg world) {
+                                           uint32_t i) {
     CXCursor c = lean_to_cursor(cursor);
     lean_object *tu_ref = lean_cursor_tu_ref(cursor);
     CXCursor arg = clang_Cursor_getArgument(c, (unsigned)i);
@@ -324,8 +312,7 @@ lean_obj_res lean_clang_getCursorArgument(lean_obj_arg cursor,
 Return type of a function cursor
 */
 
-lean_obj_res lean_clang_getCursorResultTypeSpelling(lean_obj_arg cursor,
-                                                     lean_obj_arg world) {
+lean_obj_res lean_clang_getCursorResultTypeSpelling(lean_obj_arg cursor) {
     CXCursor c = lean_to_cursor(cursor);
     CXType funcType = clang_getCursorType(c);
     CXType resultType = clang_getResultType(funcType);
@@ -337,15 +324,13 @@ lean_obj_res lean_clang_getCursorResultTypeSpelling(lean_obj_arg cursor,
 Enum constant value
 */
 
-lean_obj_res lean_clang_getCursorEnumConstantValue(lean_obj_arg cursor,
-                                                    lean_obj_arg world) {
+lean_obj_res lean_clang_getCursorEnumConstantValue(lean_obj_arg cursor) {
     CXCursor c = lean_to_cursor(cursor);
     long long value = clang_getEnumConstantDeclValue(c);
     return lean_io_result_mk_ok(lean_box_uint64((uint64_t)value));
 }
 
-lean_obj_res lean_clang_getCursorEnumConstantUValue(lean_obj_arg cursor,
-                                                     lean_obj_arg world) {
+lean_obj_res lean_clang_getCursorEnumConstantUValue(lean_obj_arg cursor) {
     CXCursor c = lean_to_cursor(cursor);
     unsigned long long value = clang_getEnumConstantDeclUnsignedValue(c);
     return lean_io_result_mk_ok(lean_box_uint64((uint64_t)value));
@@ -358,7 +343,7 @@ macro body and try to parse the first non-name token as an integer literal.
 Returns Option Int64: some(value) on success, none otherwise.
 */
 
-lean_obj_res lean_clang_evaluateCursor(lean_obj_arg cursor, lean_obj_arg world) {
+lean_obj_res lean_clang_evaluateCursor(lean_obj_arg cursor) {
     lean_object *tu_lean = lean_cursor_tu_ref(cursor);
     CXTranslationUnit tu = (CXTranslationUnit)lean_get_external_data(tu_lean);
     CXCursor c = lean_to_cursor(cursor);
