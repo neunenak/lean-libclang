@@ -195,9 +195,26 @@ Source location
 */
 
 lean_obj_res lean_clang_isFromMainFile(lean_obj_arg cursor) {
-    CXCursor c = lean_to_cursor(cursor);
+    CursorData *cd = (CursorData *)lean_get_external_data(cursor);
+    CXCursor c = cd->cursor;
+    CXTranslationUnit tu = (CXTranslationUnit)lean_get_external_data(cd->tu_ref);
     CXSourceLocation loc = clang_getCursorLocation(c);
-    return lean_io_result_mk_ok(lean_box(clang_Location_isFromMainFile(loc) != 0));
+
+    /* For declarations whose names are macro arguments (e.g. BZ_API(func) in
+     * bzip2), the raw cursor location is a MacroID.  When
+     * clang_Location_isFromMainFile dereferences that MacroID it follows the
+     * expansion chain, which can end up in an intermediate scratch buffer
+     * rather than in the main file, and incorrectly returns false.
+     *
+     * Fix: extract the concrete expansion file/line/col, reconstruct a plain
+     * file-based (non-macro) CXSourceLocation from those coordinates, and
+     * check that instead. */
+    CXFile file;
+    unsigned line, col, offset;
+    clang_getExpansionLocation(loc, &file, &line, &col, &offset);
+    if (!file) return lean_io_result_mk_ok(lean_box(0));
+    CXSourceLocation fileLoc = clang_getLocation(tu, file, line, col);
+    return lean_io_result_mk_ok(lean_box(clang_Location_isFromMainFile(fileLoc) != 0));
 }
 
 lean_obj_res lean_clang_isInSystemHeader(lean_obj_arg cursor) {
